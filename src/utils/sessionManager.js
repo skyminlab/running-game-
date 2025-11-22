@@ -22,17 +22,19 @@ export function generateSessionCode() {
 export const SessionManager = {
   // Create a new session (Admin)
   createSession(accessCode) {
+    // Normalize access code to uppercase
+    const code = accessCode.trim().toUpperCase();
     const sessionData = {
-      code: accessCode,
+      code: code,
       createdAt: Date.now(),
       students: [],
       gameState: null,
       broadcastMessage: null,
       lastUpdate: Date.now()
     };
-    localStorage.setItem(`${STORAGE_KEYS.TEACHER_DATA}_${accessCode}`, JSON.stringify(sessionData));
-    localStorage.setItem(STORAGE_KEYS.SESSION_CODE, accessCode);
-    this.syncSession(accessCode);
+    localStorage.setItem(`${STORAGE_KEYS.TEACHER_DATA}_${code}`, JSON.stringify(sessionData));
+    localStorage.setItem(STORAGE_KEYS.SESSION_CODE, code);
+    this.syncSession(code);
     return sessionData;
   },
 
@@ -52,30 +54,38 @@ export const SessionManager = {
 
   // Update session
   updateSession(accessCode, updates) {
-    const session = this.getSession(accessCode);
+    const code = accessCode ? accessCode.trim().toUpperCase() : null;
+    if (!code) return;
+    
+    const session = this.getSession(code);
     if (session) {
       Object.assign(session, updates, { lastUpdate: Date.now() });
-      localStorage.setItem(`${STORAGE_KEYS.TEACHER_DATA}_${accessCode}`, JSON.stringify(session));
+      localStorage.setItem(`${STORAGE_KEYS.TEACHER_DATA}_${code}`, JSON.stringify(session));
       // Always sync after update
-      this.syncSession(accessCode);
+      this.syncSession(code);
     }
   },
 
   // Sync session (trigger storage event for other tabs and custom event for same tab)
   syncSession(accessCode) {
-    const syncKey = `${STORAGE_KEYS.TEACHER_DATA}_sync_${accessCode}`;
+    if (!accessCode) return;
+    const code = accessCode.trim().toUpperCase();
+    const syncKey = `${STORAGE_KEYS.TEACHER_DATA}_sync_${code}`;
     const syncValue = Date.now().toString();
     localStorage.setItem(syncKey, syncValue);
     
     // Trigger custom event for same-tab listeners
     window.dispatchEvent(new CustomEvent('sessionUpdate', {
-      detail: { accessCode, syncKey, syncValue }
+      detail: { accessCode: code, syncKey, syncValue }
     }));
   },
 
   // Add student to session
   addStudent(accessCode, studentId, studentData) {
-    const session = this.getSession(accessCode);
+    const code = accessCode ? accessCode.trim().toUpperCase() : null;
+    if (!code) return;
+    
+    const session = this.getSession(code);
     if (session) {
       const existingIndex = session.students.findIndex(s => s.id === studentId);
       const student = {
@@ -93,7 +103,7 @@ export const SessionManager = {
         session.students.push(student);
       }
       
-      this.updateSession(accessCode, { students: session.students });
+      this.updateSession(code, { students: session.students });
     }
   },
 
@@ -105,41 +115,53 @@ export const SessionManager = {
 
   // Remove student from session
   removeStudent(accessCode, studentId) {
-    const session = this.getSession(accessCode);
+    const code = accessCode ? accessCode.trim().toUpperCase() : null;
+    if (!code) return;
+    
+    const session = this.getSession(code);
     if (session) {
       session.students = session.students.filter(s => s.id !== studentId);
-      this.updateSession(accessCode, { students: session.students });
-      this.syncSession(accessCode);
+      this.updateSession(code, { students: session.students });
+      this.syncSession(code);
     }
   },
   
   // Clear all students from session
   clearAllStudents(accessCode) {
-    const session = this.getSession(accessCode);
+    const code = accessCode ? accessCode.trim().toUpperCase() : null;
+    if (!code) return;
+    
+    const session = this.getSession(code);
     if (session) {
       session.students = [];
-      this.updateSession(accessCode, { students: [] });
-      this.syncSession(accessCode);
+      this.updateSession(code, { students: [] });
+      this.syncSession(code);
     }
   },
 
   // Save student result
   saveStudentResult(accessCode, studentId, gameType, result) {
-    const session = this.getSession(accessCode);
+    const code = accessCode ? accessCode.trim().toUpperCase() : null;
+    if (!code) return;
+    
+    const session = this.getSession(code);
     if (session) {
       const student = session.students.find(s => s.id === studentId);
       if (student) {
         if (!student.results) student.results = {};
         student.results[gameType] = result;
         student.lastUpdate = Date.now();
-        this.updateSession(accessCode, { students: session.students });
+        this.updateSession(code, { students: session.students });
       }
     }
   },
 
   // Get all student results
   getAllResults(accessCode) {
-    const session = this.getSession(accessCode);
+    const code = accessCode ? accessCode.trim().toUpperCase() : null;
+    if (!code) return [];
+    
+    const session = this.getSession(code);
     if (!session) return [];
     
     return session.students.map(student => ({
@@ -151,32 +173,46 @@ export const SessionManager = {
 
   // Broadcast message to all students
   broadcastMessage(accessCode, message) {
-    this.updateSession(accessCode, { broadcastMessage: { text: message, timestamp: Date.now() } });
-    this.syncSession(accessCode); // Extra sync for important updates
+    const code = accessCode ? accessCode.trim().toUpperCase() : null;
+    if (!code) return;
+    
+    this.updateSession(code, { broadcastMessage: { text: message, timestamp: Date.now() } });
+    this.syncSession(code); // Extra sync for important updates
   },
 
   // Get broadcast message
   getBroadcastMessage(accessCode) {
-    const session = this.getSession(accessCode);
+    const code = accessCode ? accessCode.trim().toUpperCase() : null;
+    if (!code) return null;
+    
+    const session = this.getSession(code);
     return session?.broadcastMessage || null;
   },
 
   // Set game state
   setGameState(accessCode, gameState) {
-    this.updateSession(accessCode, { gameState });
-    this.syncSession(accessCode); // Extra sync for important updates
+    const code = accessCode ? accessCode.trim().toUpperCase() : null;
+    if (!code) return;
+    
+    this.updateSession(code, { gameState });
+    this.syncSession(code); // Extra sync for important updates
   },
 
   // Get game state
   getGameState(accessCode) {
-    const session = this.getSession(accessCode);
+    const code = accessCode ? accessCode.trim().toUpperCase() : null;
+    if (!code) return null;
+    
+    const session = this.getSession(code);
     return session?.gameState || null;
   },
 
   // Delete session
   deleteSession(accessCode) {
-    localStorage.removeItem(`${STORAGE_KEYS.TEACHER_DATA}_${accessCode}`);
-    localStorage.removeItem(`${STORAGE_KEYS.TEACHER_DATA}_sync_${accessCode}`);
+    if (!accessCode) return;
+    const code = accessCode.trim().toUpperCase();
+    localStorage.removeItem(`${STORAGE_KEYS.TEACHER_DATA}_${code}`);
+    localStorage.removeItem(`${STORAGE_KEYS.TEACHER_DATA}_sync_${code}`);
   }
 };
 
@@ -203,12 +239,15 @@ export function clearCurrentUser() {
 
 // Poll for session updates (for real-time sync)
 export function pollSession(accessCode, callback, interval = 300) {
+  if (!accessCode) return () => {};
+  
+  const code = accessCode.trim().toUpperCase();
   let lastSync = 0;
   let lastDataHash = '';
   
   // Listen for custom events (same tab)
   const handleCustomEvent = (e) => {
-    if (e.detail && e.detail.accessCode === accessCode) {
+    if (e.detail && e.detail.accessCode === code) {
       if (callback) callback();
     }
   };
@@ -216,12 +255,12 @@ export function pollSession(accessCode, callback, interval = 300) {
   
   // Poll for changes
   const poll = setInterval(() => {
-    const syncKey = `${STORAGE_KEYS.TEACHER_DATA}_sync_${accessCode}`;
+    const syncKey = `${STORAGE_KEYS.TEACHER_DATA}_sync_${code}`;
     const syncTime = localStorage.getItem(syncKey);
     const currentSync = syncTime ? parseInt(syncTime) : 0;
     
     // Also check if session data itself changed
-    const session = SessionManager.getSession(accessCode);
+    const session = SessionManager.getSession(code);
     const currentDataHash = session ? JSON.stringify(session) : '';
     
     if (currentSync > lastSync || currentDataHash !== lastDataHash) {
