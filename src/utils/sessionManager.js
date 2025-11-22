@@ -90,56 +90,29 @@ export const SessionManager = {
     }
   },
 
-  // Get session data - with multiple fallback strategies
+  // Get session data - direct lookup only (no recursion)
   getSession(accessCode) {
     if (!accessCode) {
       console.warn('getSession called with empty accessCode');
       return null;
     }
+
     const code = accessCode.trim().toUpperCase();
     const storageKey = `${STORAGE_KEYS.TEACHER_DATA}_${code}`;
-    
+
     try {
-      // Strategy 1: Direct lookup
-      let data = localStorage.getItem(storageKey);
-      
-      // Strategy 2: Try with different case variations
+      // Direct lookup only
+      const data = localStorage.getItem(storageKey);
+
       if (!data) {
-        const variations = [
-          storageKey.toLowerCase(),
-          `${STORAGE_KEYS.TEACHER_DATA}_${code.toLowerCase()}`,
-          `${STORAGE_KEYS.TEACHER_DATA}_${accessCode.trim()}` // Original case
-        ];
-        
-        for (const variant of variations) {
-          data = localStorage.getItem(variant);
-          if (data) {
-            console.log('✅ Found session with variant key:', variant);
-            break;
-          }
-        }
-      }
-      
-      // Strategy 3: Search all sessions
-      if (!data) {
-        const found = this.findSessionByCode(code);
-        if (found) {
-          console.log('✅ Found session by searching all keys');
-          return found;
-        }
-      }
-      
-      if (!data) {
-        // Debug: List all session keys
-        console.warn('❌ Session not found for code:', code);
-        console.warn('   Looking for key:', storageKey);
+        console.warn(`❌ Session not found for code: ${code}`);
         this.debugListAllSessions();
         return null;
       }
-      
+
       const parsed = JSON.parse(data);
-      console.log('✅ Session found:', code);
       return parsed;
+
     } catch (error) {
       console.error('❌ Error parsing session data:', error);
       return null;
