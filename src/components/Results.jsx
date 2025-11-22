@@ -38,66 +38,99 @@ function Results({ result, gameType, onRestart, onOtherGame, onHome }) {
   const rankings = getRanking();
   const playerRank = rankings.findIndex(r => r.id === user?.studentId) + 1;
 
+  const topThree = rankings.slice(0, 3);
+  const playerRanking = rankings.find(r => r.id === user?.studentId);
+
   return (
     <div className="results-screen">
       <div className="container">
-        <h1>🏁 경기 결과 🏁</h1>
+        <h1>🏆 시상식 🏆</h1>
 
-        <div className="result-summary">
-          {gameType === '100m' ? (
-            <>
-              <h2>내 결과</h2>
-              <div className="result-card player-result">
-                <div className="result-value">
-                  <span className="label">거리:</span>
-                  <span className="value">{result.playerDistance}m</span>
-                </div>
-                <div className="result-value">
-                  <span className="label">시간:</span>
-                  <span className="value">{result.playerTime.toFixed(2)}초</span>
-                </div>
-                <div className="result-value">
-                  <span className="label">속력:</span>
-                  <span className="value">
-                    {calculateSpeed(result.playerDistance, result.playerTime)} m/s
-                  </span>
-                </div>
-                {playerRank > 0 && (
-                  <div className="rank-badge">
-                    순위: {playerRank === 1 ? '🥇' : playerRank === 2 ? '🥈' : playerRank === 3 ? '🥉' : `${playerRank}등`}
+        {/* Top 3 Podium */}
+        {topThree.length > 0 && (
+          <div className="podium-section">
+            <h2>🏅 상위 3명 🏅</h2>
+            <div className="podium">
+              {topThree.map((ranking, idx) => {
+                const rank = ranking.rank;
+                const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+                const height = rank === 1 ? '100%' : rank === 2 ? '80%' : '60%';
+                
+                return (
+                  <div key={ranking.id} className={`podium-item rank-${rank}`}>
+                    <div className="podium-stand" style={{ height: height }}>
+                      <div className="podium-rank">{rankEmoji}</div>
+                      <div className="podium-name">{ranking.name}</div>
+                      <div className="podium-result">
+                        {gameType === '100m' ? (
+                          <>{ranking.results['100m'].time.toFixed(2)}초</>
+                        ) : (
+                          <>{ranking.results['10s'].distance.toFixed(1)}m</>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <h2>내 결과</h2>
-              <div className="result-card player-result">
-                <div className="result-value">
-                  <span className="label">거리:</span>
-                  <span className="value">{result.playerDistance.toFixed(1)}m</span>
-                </div>
-                <div className="result-value">
-                  <span className="label">시간:</span>
-                  <span className="value">{result.playerTime}초</span>
-                </div>
-                <div className="result-value">
-                  <span className="label">속력:</span>
-                  <span className="value">
-                    {calculateSpeed(result.playerDistance, result.playerTime)} m/s
-                  </span>
-                </div>
-                {playerRank > 0 && (
-                  <div className="rank-badge">
-                    순위: {playerRank === 1 ? '🥇' : playerRank === 2 ? '🥈' : playerRank === 3 ? '🥉' : `${playerRank}등`}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-        {rankings.length > 1 && (
+        {/* My Result */}
+        {playerRanking && (
+          <div className="result-summary">
+            <h2>내 기록</h2>
+            <div className="result-card player-result">
+              <div className="result-value">
+                <span className="label">순위:</span>
+                <span className="value">
+                  {playerRanking.rank === 1 ? '🥇 1등' : 
+                   playerRanking.rank === 2 ? '🥈 2등' : 
+                   playerRanking.rank === 3 ? '🥉 3등' : 
+                   `${playerRanking.rank}등`}
+                </span>
+              </div>
+              {gameType === '100m' ? (
+                <>
+                  <div className="result-value">
+                    <span className="label">거리:</span>
+                    <span className="value">{result.playerDistance}m</span>
+                  </div>
+                  <div className="result-value">
+                    <span className="label">시간:</span>
+                    <span className="value">{result.playerTime.toFixed(2)}초</span>
+                  </div>
+                  <div className="result-value">
+                    <span className="label">속력:</span>
+                    <span className="value">
+                      {calculateSpeed(result.playerDistance, result.playerTime)} m/s
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="result-value">
+                    <span className="label">거리:</span>
+                    <span className="value">{result.playerDistance.toFixed(1)}m</span>
+                  </div>
+                  <div className="result-value">
+                    <span className="label">시간:</span>
+                    <span className="value">{result.playerTime}초</span>
+                  </div>
+                  <div className="result-value">
+                    <span className="label">속력:</span>
+                    <span className="value">
+                      {calculateSpeed(result.playerDistance, result.playerTime)} m/s
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* All Rankings */}
+        {rankings.length > 3 && (
           <div className="all-rankings">
             <h2>전체 순위</h2>
             <div className="rankings-list">

@@ -20,14 +20,37 @@
   50% { transform: translateY(-20px); }
 }
 
-.timer {
+.game-timer {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
   text-align: center;
-  font-size: 6em;
+  border: 3px solid #4ecdc4;
+}
+
+.timer-label {
+  font-size: 1.2em;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.timer-value {
+  font-size: 3em;
   font-weight: bold;
   color: #44a08d;
-  margin: 20px 0;
-  min-height: 120px;
-  animation: pulse 1s infinite;
+}
+
+.elapsed-time {
+  font-size: 1em;
+  color: #999;
+  margin-top: 5px;
 }
 
 @keyframes pulse {
