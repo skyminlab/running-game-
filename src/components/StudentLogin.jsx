@@ -14,12 +14,26 @@ function StudentLogin({ onLogin }) {
       return;
     }
 
-    const session = SessionManager.getSession(code);
+    // Check if session exists, if not wait a bit and retry (for timing issues)
+    let session = SessionManager.getSession(code);
     if (!session) {
-      alert('세션을 찾을 수 없습니다. 접속 코드를 확인해주세요.');
+      // Wait a bit and retry once
+      setTimeout(() => {
+        session = SessionManager.getSession(code);
+        if (!session) {
+          alert('세션을 찾을 수 없습니다. 접속 코드를 확인해주세요. 교사가 세션을 생성했는지 확인해주세요.');
+          setIsConnecting(false);
+          return;
+        }
+        proceedWithLogin(code);
+      }, 200);
       return;
     }
 
+    proceedWithLogin(code);
+  };
+
+  const proceedWithLogin = (code) => {
     setIsConnecting(true);
 
     // Generate student ID and add to session
@@ -38,10 +52,13 @@ function StudentLogin({ onLogin }) {
       nickname: studentName
     });
 
+    // Force sync
+    SessionManager.syncSession(code);
+
     setTimeout(() => {
       setIsConnecting(false);
       onLogin(code, studentId, studentName);
-    }, 500);
+    }, 300);
   };
 
   return (

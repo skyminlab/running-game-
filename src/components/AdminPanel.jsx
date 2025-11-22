@@ -11,17 +11,25 @@ function AdminPanel({ sessionCode, onLogout }) {
   useEffect(() => {
     updateData();
 
-    const poll = pollSession(sessionCode, updateData, 500);
+    const cleanup = pollSession(sessionCode, updateData, 300);
     const handleStorage = (e) => {
       if (e.key && e.key.includes(sessionCode)) {
         updateData();
       }
     };
+    const handleCustomEvent = (e) => {
+      if (e.detail && e.detail.accessCode === sessionCode) {
+        updateData();
+      }
+    };
+    
     window.addEventListener('storage', handleStorage);
+    window.addEventListener('sessionUpdate', handleCustomEvent);
 
     return () => {
-      clearInterval(poll);
+      cleanup();
       window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('sessionUpdate', handleCustomEvent);
     };
   }, [sessionCode]);
 
@@ -47,22 +55,32 @@ function AdminPanel({ sessionCode, onLogout }) {
       startTime: Date.now()
     });
     SessionManager.broadcastMessage(sessionCode, `게임 시작: ${gameType === '100m' ? '100m 달리기' : '10초 달리기'}!`);
+    SessionManager.syncSession(sessionCode); // Force sync
     setCurrentGame(gameType);
+    updateData(); // Immediate update
   };
 
   const handleResetGame = () => {
     SessionManager.setGameState(sessionCode, null);
     SessionManager.broadcastMessage(sessionCode, '게임이 리셋되었습니다. 게임 선택 화면으로 돌아가주세요.');
+    SessionManager.syncSession(sessionCode); // Force sync
     setCurrentGame(null);
+    updateData(); // Immediate update
   };
 
   const handleResetStudents = () => {
     if (confirm('모든 학생의 진행 상황을 초기화하시겠습니까?')) {
-      students.forEach(student => {
-        SessionManager.removeStudent(sessionCode, student.id);
-      });
-      SessionManager.createSession(sessionCode);
-      updateData();
+      SessionManager.clearAllStudents(sessionCode);
+      SessionManager.setGameState(sessionCode, null);
+      SessionManager.broadcastMessage(sessionCode, '모든 학생이 초기화되었습니다.');
+      SessionManager.syncSession(sessionCode); // Force sync
+      setCurrentGame(null);
+      updateData(); // Immediate update
+      
+      // Force update after a short delay to ensure sync
+      setTimeout(() => {
+        updateData();
+      }, 100);
     }
   };
 

@@ -48,13 +48,21 @@ export const SessionManager = {
     if (session) {
       Object.assign(session, updates, { lastUpdate: Date.now() });
       localStorage.setItem(`${STORAGE_KEYS.TEACHER_DATA}_${accessCode}`, JSON.stringify(session));
+      // Always sync after update
       this.syncSession(accessCode);
     }
   },
 
-  // Sync session (trigger storage event for other tabs)
+  // Sync session (trigger storage event for other tabs and custom event for same tab)
   syncSession(accessCode) {
-    localStorage.setItem(`${STORAGE_KEYS.TEACHER_DATA}_sync_${accessCode}`, Date.now().toString());
+    const syncKey = `${STORAGE_KEYS.TEACHER_DATA}_sync_${accessCode}`;
+    const syncValue = Date.now().toString();
+    localStorage.setItem(syncKey, syncValue);
+    
+    // Trigger custom event for same-tab listeners
+    window.dispatchEvent(new CustomEvent('sessionUpdate', {
+      detail: { accessCode, syncKey, syncValue }
+    }));
   },
 
   // Add student to session
@@ -93,6 +101,17 @@ export const SessionManager = {
     if (session) {
       session.students = session.students.filter(s => s.id !== studentId);
       this.updateSession(accessCode, { students: session.students });
+      this.syncSession(accessCode);
+    }
+  },
+  
+  // Clear all students from session
+  clearAllStudents(accessCode) {
+    const session = this.getSession(accessCode);
+    if (session) {
+      session.students = [];
+      this.updateSession(accessCode, { students: [] });
+      this.syncSession(accessCode);
     }
   },
 
@@ -125,6 +144,7 @@ export const SessionManager = {
   // Broadcast message to all students
   broadcastMessage(accessCode, message) {
     this.updateSession(accessCode, { broadcastMessage: { text: message, timestamp: Date.now() } });
+    this.syncSession(accessCode); // Extra sync for important updates
   },
 
   // Get broadcast message
@@ -136,6 +156,7 @@ export const SessionManager = {
   // Set game state
   setGameState(accessCode, gameState) {
     this.updateSession(accessCode, { gameState });
+    this.syncSession(accessCode); // Extra sync for important updates
   },
 
   // Get game state
@@ -173,19 +194,39 @@ export function clearCurrentUser() {
 }
 
 // Poll for session updates (for real-time sync)
-export function pollSession(accessCode, callback, interval = 500) {
+export function pollSession(accessCode, callback, interval = 300) {
   let lastSync = 0;
+  let lastDataHash = '';
+  
+  // Listen for custom events (same tab)
+  const handleCustomEvent = (e) => {
+    if (e.detail && e.detail.accessCode === accessCode) {
+      if (callback) callback();
+    }
+  };
+  window.addEventListener('sessionUpdate', handleCustomEvent);
+  
+  // Poll for changes
   const poll = setInterval(() => {
     const syncKey = `${STORAGE_KEYS.TEACHER_DATA}_sync_${accessCode}`;
     const syncTime = localStorage.getItem(syncKey);
     const currentSync = syncTime ? parseInt(syncTime) : 0;
     
-    if (currentSync > lastSync) {
+    // Also check if session data itself changed
+    const session = SessionManager.getSession(accessCode);
+    const currentDataHash = session ? JSON.stringify(session) : '';
+    
+    if (currentSync > lastSync || currentDataHash !== lastDataHash) {
       lastSync = currentSync;
+      lastDataHash = currentDataHash;
       if (callback) callback();
     }
   }, interval);
   
-  return poll;
+  // Return cleanup function
+  return () => {
+    clearInterval(poll);
+    window.removeEventListener('sessionUpdate', handleCustomEvent);
+  };
 }
 

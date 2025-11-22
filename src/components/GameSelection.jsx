@@ -13,7 +13,7 @@ function GameSelection({ sessionCode, onGameSelect, onSettings, onLogout }) {
     updateData();
 
     // Poll for updates
-    const poll = pollSession(sessionCode, updateData, 500);
+    const cleanup = pollSession(sessionCode, updateData, 300);
 
     // Listen for storage events (cross-tab communication)
     const handleStorage = (e) => {
@@ -21,11 +21,21 @@ function GameSelection({ sessionCode, onGameSelect, onSettings, onLogout }) {
         updateData();
       }
     };
+    
+    // Listen for custom events (same tab)
+    const handleCustomEvent = (e) => {
+      if (e.detail && e.detail.accessCode === sessionCode) {
+        updateData();
+      }
+    };
+    
     window.addEventListener('storage', handleStorage);
+    window.addEventListener('sessionUpdate', handleCustomEvent);
 
     return () => {
-      clearInterval(poll);
+      cleanup();
       window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('sessionUpdate', handleCustomEvent);
     };
   }, [sessionCode]);
 
