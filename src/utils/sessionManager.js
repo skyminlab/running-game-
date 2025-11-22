@@ -148,53 +148,123 @@ export const SessionManager = {
   
   // Debug: List all sessions in localStorage
   debugListAllSessions() {
-    console.log('🔍 Debugging: Listing all localStorage keys...');
+    console.log('🔍 Debugging: Listing ALL localStorage keys...');
     const allKeys = [];
+    const sessionKeys = [];
+    
+    // List ALL keys first
+    console.log('📋 All localStorage keys:');
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.includes(STORAGE_KEYS.TEACHER_DATA)) {
+      if (key) {
         allKeys.push(key);
+        console.log(`   [${i}] ${key}`);
+      }
+    }
+    
+    // Then filter session keys
+    console.log('\n📋 Session-related keys:');
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes(STORAGE_KEYS.TEACHER_DATA) || key.includes('speedRace'))) {
+        sessionKeys.push(key);
         const value = localStorage.getItem(key);
         try {
           const parsed = JSON.parse(value);
-          console.log(`   Found session key: ${key}, code: ${parsed.code}`);
+          if (parsed.code) {
+            console.log(`   ✅ Session key: ${key}`);
+            console.log(`      Code: ${parsed.code}`);
+            console.log(`      Students: ${parsed.students?.length || 0}`);
+          } else {
+            console.log(`   📄 Key: ${key} (not a session)`);
+          }
         } catch (e) {
-          console.log(`   Found key (not JSON): ${key}`);
+          console.log(`   📄 Key: ${key} (not JSON: ${value?.substring(0, 50)})`);
         }
       }
     }
-    if (allKeys.length === 0) {
-      console.warn('   No session keys found in localStorage');
+    
+    if (sessionKeys.length === 0) {
+      console.warn('   ⚠️ No session keys found in localStorage');
+      console.warn('   💡 Possible causes:');
+      console.warn('      - Session was not created');
+      console.warn('      - Different browser/domain');
+      console.warn('      - localStorage is disabled');
+      console.warn('      - Private/Incognito mode');
     }
-    return allKeys;
+    
+    return sessionKeys;
   },
   
-  // Find session by code (case-insensitive search)
+  // Find session by code (case-insensitive search) - comprehensive search
   findSessionByCode(searchCode) {
     if (!searchCode) return null;
     const normalizedSearch = searchCode.trim().toUpperCase();
+    const originalSearch = searchCode.trim();
     
-    // First try direct lookup
-    let session = this.getSession(normalizedSearch);
-    if (session) return session;
+    console.log('🔍 Comprehensive search for code:', normalizedSearch);
     
-    // If not found, search all keys
-    console.log('🔍 Searching all sessions for code:', normalizedSearch);
+    // Strategy 1: Try all case variations
+    const variations = [
+      normalizedSearch,
+      originalSearch,
+      originalSearch.toLowerCase(),
+      originalSearch.toUpperCase()
+    ];
+    
+    for (const variant of variations) {
+      const session = this.getSession(variant);
+      if (session) {
+        console.log('✅ Found with variant:', variant);
+        return session;
+      }
+    }
+    
+    // Strategy 2: Search ALL localStorage keys
+    console.log('🔍 Searching ALL localStorage keys...');
+    const foundSessions = [];
+    
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith(STORAGE_KEYS.TEACHER_DATA + '_')) {
+      if (!key) continue;
+      
+      // Check if it might be a session key
+      if (key.includes('speedRace') || key.includes('TEACHER_DATA') || key.includes('TEACHER')) {
         try {
           const value = localStorage.getItem(key);
+          if (!value) continue;
+          
           const parsed = JSON.parse(value);
-          if (parsed.code && parsed.code.toUpperCase() === normalizedSearch) {
-            console.log('✅ Found session by searching:', key);
-            return parsed;
+          
+          // Check if it has a code field
+          if (parsed && typeof parsed === 'object' && parsed.code) {
+            const sessionCode = String(parsed.code).trim().toUpperCase();
+            foundSessions.push({ key, session: parsed, code: sessionCode });
+            
+            // Check if this matches
+            if (sessionCode === normalizedSearch || sessionCode === originalSearch.toUpperCase()) {
+              console.log('✅ Found matching session:', key, 'Code:', parsed.code);
+              return parsed;
+            }
           }
         } catch (e) {
-          // Skip invalid JSON
+          // Not JSON, skip
         }
       }
     }
+    
+    // Strategy 3: Show what we found
+    if (foundSessions.length > 0) {
+      console.log(`📋 Found ${foundSessions.length} session(s) in localStorage:`);
+      foundSessions.forEach(({ key, code }) => {
+        console.log(`   - Key: ${key}, Code: ${code}`);
+      });
+      console.log(`   Looking for: ${normalizedSearch}`);
+      console.log('   ⚠️ No exact match found');
+    } else {
+      console.log('   ⚠️ No sessions found in localStorage at all');
+    }
+    
     return null;
   },
 

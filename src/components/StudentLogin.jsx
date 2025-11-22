@@ -106,11 +106,34 @@ function StudentLogin({ onLogin }) {
           setTimeout(tryConnect, delay);
         } else {
           setIsConnecting(false);
+          
+          // Comprehensive debugging
           const allSessions = SessionManager.debugListAllSessions();
-          const sessionList = allSessions.length > 0 
-            ? `\n\n발견된 세션: ${allSessions.length}개`
-            : '\n\n발견된 세션: 없음';
-          setErrorMessage(`세션을 찾을 수 없습니다.\n\n접속 코드: ${code}\n\n확인 사항:\n1. 교사가 세션을 생성했는지 확인\n2. 같은 브라우저/도메인에서 접속하는지 확인\n3. 브라우저 콘솔(F12)에서 자세한 정보 확인${sessionList}`);
+          const foundSession = SessionManager.findSessionByCode(code);
+          
+          let errorMsg = `세션을 찾을 수 없습니다.\n\n`;
+          errorMsg += `입력한 접속 코드: ${code}\n\n`;
+          
+          if (allSessions.length > 0) {
+            errorMsg += `⚠️ localStorage에 ${allSessions.length}개의 세션이 있지만 일치하는 코드가 없습니다.\n\n`;
+            errorMsg += `확인 사항:\n`;
+            errorMsg += `1. 접속 코드를 정확히 입력했는지 확인\n`;
+            errorMsg += `2. 교사가 표시한 코드와 동일한지 확인\n`;
+            errorMsg += `3. 브라우저 콘솔(F12)에서 발견된 세션 코드 확인\n\n`;
+          } else {
+            errorMsg += `⚠️ localStorage에 세션이 전혀 없습니다.\n\n`;
+            errorMsg += `가능한 원인:\n`;
+            errorMsg += `1. 교사가 아직 세션을 생성하지 않았음\n`;
+            errorMsg += `2. 다른 브라우저/기기에서 접속 중 (localStorage는 같은 브라우저에서만 공유됨)\n`;
+            errorMsg += `3. 프라이빗 모드 또는 localStorage가 비활성화됨\n\n`;
+          }
+          
+          errorMsg += `💡 해결 방법:\n`;
+          errorMsg += `- 교사와 같은 브라우저의 다른 탭에서 접속하세요\n`;
+          errorMsg += `- 교사에게 접속 코드를 다시 확인하세요\n`;
+          errorMsg += `- 브라우저 콘솔(F12)을 열어 자세한 정보를 확인하세요`;
+          
+          setErrorMessage(errorMsg);
         }
       }
     };
