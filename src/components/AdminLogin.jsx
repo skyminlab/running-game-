@@ -8,14 +8,32 @@ function AdminLogin({ onLogin }) {
 
   const handleCreateSession = () => {
     setIsCreating(true);
-    const code = generateSessionCode();
-    SessionManager.createSession(code);
-    saveCurrentUser({ role: 'admin', sessionCode: code });
-    setAccessCode(code);
-    setIsCreating(false);
-    setTimeout(() => {
-      onLogin(code);
-    }, 500);
+    try {
+      const code = generateSessionCode();
+      const session = SessionManager.createSession(code);
+      
+      // Verify session was created
+      const verify = SessionManager.getSession(code);
+      if (!verify) {
+        throw new Error('세션 생성 후 확인에 실패했습니다.');
+      }
+      
+      console.log('✅ Admin session created successfully:', code);
+      saveCurrentUser({ role: 'admin', sessionCode: code });
+      setAccessCode(code);
+      setIsCreating(false);
+      
+      // Show success message with code
+      alert(`세션이 생성되었습니다!\n접속 코드: ${code}\n\n이 코드를 학생들에게 공유해주세요.`);
+      
+      setTimeout(() => {
+        onLogin(code);
+      }, 500);
+    } catch (error) {
+      console.error('❌ Error creating session:', error);
+      setIsCreating(false);
+      alert('세션 생성에 실패했습니다. 브라우저 콘솔을 확인해주세요.\n\n가능한 원인:\n- localStorage가 비활성화되어 있음\n- 브라우저가 프라이빗 모드임\n- 저장 공간이 부족함');
+    }
   };
 
   const handleJoinSession = () => {
