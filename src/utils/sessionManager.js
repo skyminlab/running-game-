@@ -35,24 +35,54 @@ export const SessionManager = {
     const storageKey = `${STORAGE_KEYS.TEACHER_DATA}_${code}`;
     
     try {
-      localStorage.setItem(storageKey, JSON.stringify(sessionData));
-      localStorage.setItem(STORAGE_KEYS.SESSION_CODE, code);
+      // Save with retry mechanism
+      let saved = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(sessionData));
+          localStorage.setItem(STORAGE_KEYS.SESSION_CODE, code);
+          
+          // Verify it was saved immediately
+          const verify = localStorage.getItem(storageKey);
+          if (verify) {
+            // Double check by parsing
+            const parsed = JSON.parse(verify);
+            if (parsed.code === code) {
+              saved = true;
+              break;
+            }
+          }
+        } catch (e) {
+          console.warn(`Save attempt ${attempt + 1} failed:`, e);
+          if (attempt < 2) {
+            // Wait a bit before retry
+            const start = Date.now();
+            while (Date.now() - start < 50) {} // 50ms delay
+          }
+        }
+      }
       
-      // Verify it was saved
-      const verify = localStorage.getItem(storageKey);
-      if (!verify) {
-        console.error('Failed to save session to localStorage');
+      if (!saved) {
+        console.error('Failed to save session to localStorage after 3 attempts');
         throw new Error('localStorage save failed');
       }
       
-      console.log('✅ Session created:', code, 'Key:', storageKey);
+      // Force sync multiple times to ensure visibility
       this.syncSession(code);
+      setTimeout(() => this.syncSession(code), 100);
+      setTimeout(() => this.syncSession(code), 300);
+      
+      console.log('✅ Session created:', code, 'Key:', storageKey);
+      console.log('   Verified:', localStorage.getItem(storageKey) ? 'YES' : 'NO');
+      
       return sessionData;
     } catch (error) {
       console.error('❌ Error creating session:', error);
       // Check if localStorage is available
       if (typeof Storage === 'undefined') {
         alert('localStorage를 사용할 수 없습니다. 브라우저 설정을 확인해주세요.');
+      } else if (error.name === 'QuotaExceededError') {
+        alert('저장 공간이 부족합니다. 브라우저 캐시를 정리해주세요.');
       } else {
         alert('세션 저장에 실패했습니다. 브라우저 콘솔을 확인해주세요.');
       }
@@ -60,7 +90,7 @@ export const SessionManager = {
     }
   },
 
-  // Get session data
+  // Get session data - with multiple fallback strategies
   getSession(accessCode) {
     if (!accessCode) {
       console.warn('getSession called with empty accessCode');
@@ -70,7 +100,35 @@ export const SessionManager = {
     const storageKey = `${STORAGE_KEYS.TEACHER_DATA}_${code}`;
     
     try {
-      const data = localStorage.getItem(storageKey);
+      // Strategy 1: Direct lookup
+      let data = localStorage.getItem(storageKey);
+      
+      // Strategy 2: Try with different case variations
+      if (!data) {
+        const variations = [
+          storageKey.toLowerCase(),
+          `${STORAGE_KEYS.TEACHER_DATA}_${code.toLowerCase()}`,
+          `${STORAGE_KEYS.TEACHER_DATA}_${accessCode.trim()}` // Original case
+        ];
+        
+        for (const variant of variations) {
+          data = localStorage.getItem(variant);
+          if (data) {
+            console.log('✅ Found session with variant key:', variant);
+            break;
+          }
+        }
+      }
+      
+      // Strategy 3: Search all sessions
+      if (!data) {
+        const found = this.findSessionByCode(code);
+        if (found) {
+          console.log('✅ Found session by searching all keys');
+          return found;
+        }
+      }
+      
       if (!data) {
         // Debug: List all session keys
         console.warn('❌ Session not found for code:', code);
@@ -78,6 +136,7 @@ export const SessionManager = {
         this.debugListAllSessions();
         return null;
       }
+      
       const parsed = JSON.parse(data);
       console.log('✅ Session found:', code);
       return parsed;

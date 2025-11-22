@@ -67,18 +67,30 @@ function StudentLogin({ onLogin }) {
     setIsConnecting(true);
     setErrorMessage('');
 
-    // 여러 번 재시도하는 로직
+    // 여러 번 재시도하는 로직 - 더 긴 시간 동안 시도
     let attempts = 0;
-    const maxAttempts = 10; // 5초 동안 시도 (500ms * 10)
+    const maxAttempts = 20; // 10초 동안 시도 (500ms * 20)
     
     const tryConnect = () => {
-      // Try direct lookup first
+      // Strategy 1: Direct lookup (getSession already has fallbacks)
       let session = SessionManager.getSession(code);
       
-      // If not found, try searching all sessions
+      // Strategy 2: Search all sessions
       if (!session) {
-        console.log('Direct lookup failed, trying search...');
+        console.log('Direct lookup failed, trying comprehensive search...');
         session = SessionManager.findSessionByCode(code);
+      }
+      
+      // Strategy 3: Try with original input (before uppercase)
+      if (!session && accessCode !== code) {
+        console.log('Trying with original case...');
+        session = SessionManager.getSession(accessCode);
+      }
+      
+      // Strategy 4: List all and show in console
+      if (!session) {
+        console.log('All strategies failed, listing all sessions...');
+        SessionManager.debugListAllSessions();
       }
       
       if (session) {
@@ -87,12 +99,18 @@ function StudentLogin({ onLogin }) {
       } else {
         attempts++;
         console.log(`Attempt ${attempts}/${maxAttempts} - Session not found for code: ${code}`);
+        
         if (attempts < maxAttempts) {
-          setTimeout(tryConnect, 500);
+          // Exponential backoff for later attempts
+          const delay = attempts < 5 ? 500 : 1000;
+          setTimeout(tryConnect, delay);
         } else {
           setIsConnecting(false);
-          const debugInfo = SessionManager.debugListAllSessions();
-          setErrorMessage(`세션을 찾을 수 없습니다. 접속 코드를 확인해주세요.\n코드: ${code}\n교사가 세션을 생성했는지 확인해주세요.\n\n브라우저 콘솔(F12)에서 자세한 정보를 확인할 수 있습니다.`);
+          const allSessions = SessionManager.debugListAllSessions();
+          const sessionList = allSessions.length > 0 
+            ? `\n\n발견된 세션: ${allSessions.length}개`
+            : '\n\n발견된 세션: 없음';
+          setErrorMessage(`세션을 찾을 수 없습니다.\n\n접속 코드: ${code}\n\n확인 사항:\n1. 교사가 세션을 생성했는지 확인\n2. 같은 브라우저/도메인에서 접속하는지 확인\n3. 브라우저 콘솔(F12)에서 자세한 정보 확인${sessionList}`);
         }
       }
     };
