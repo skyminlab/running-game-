@@ -14,7 +14,14 @@ function StudentLogin({ onLogin }) {
 
     const checkSession = () => {
       const code = accessCode.trim().toUpperCase();
-      const session = SessionManager.getSession(code);
+      // Try direct lookup first
+      let session = SessionManager.getSession(code);
+      
+      // If not found, try searching all sessions
+      if (!session) {
+        session = SessionManager.findSessionByCode(code);
+      }
+      
       if (session && !isConnecting) {
         setErrorMessage('');
         // 세션이 발견되면 자동으로 접속 시도
@@ -65,17 +72,27 @@ function StudentLogin({ onLogin }) {
     const maxAttempts = 10; // 5초 동안 시도 (500ms * 10)
     
     const tryConnect = () => {
-      const session = SessionManager.getSession(code);
+      // Try direct lookup first
+      let session = SessionManager.getSession(code);
+      
+      // If not found, try searching all sessions
+      if (!session) {
+        console.log('Direct lookup failed, trying search...');
+        session = SessionManager.findSessionByCode(code);
+      }
       
       if (session) {
+        console.log('✅ Session found, proceeding with login');
         proceedWithLogin(code);
       } else {
         attempts++;
+        console.log(`Attempt ${attempts}/${maxAttempts} - Session not found for code: ${code}`);
         if (attempts < maxAttempts) {
           setTimeout(tryConnect, 500);
         } else {
           setIsConnecting(false);
-          setErrorMessage('세션을 찾을 수 없습니다. 접속 코드를 확인해주세요.\n교사가 세션을 생성했는지 확인해주세요.');
+          const debugInfo = SessionManager.debugListAllSessions();
+          setErrorMessage(`세션을 찾을 수 없습니다. 접속 코드를 확인해주세요.\n코드: ${code}\n교사가 세션을 생성했는지 확인해주세요.\n\n브라우저 콘솔(F12)에서 자세한 정보를 확인할 수 있습니다.`);
         }
       }
     };

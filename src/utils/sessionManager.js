@@ -32,24 +32,111 @@ export const SessionManager = {
       broadcastMessage: null,
       lastUpdate: Date.now()
     };
-    localStorage.setItem(`${STORAGE_KEYS.TEACHER_DATA}_${code}`, JSON.stringify(sessionData));
-    localStorage.setItem(STORAGE_KEYS.SESSION_CODE, code);
-    this.syncSession(code);
-    return sessionData;
+    const storageKey = `${STORAGE_KEYS.TEACHER_DATA}_${code}`;
+    
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(sessionData));
+      localStorage.setItem(STORAGE_KEYS.SESSION_CODE, code);
+      
+      // Verify it was saved
+      const verify = localStorage.getItem(storageKey);
+      if (!verify) {
+        console.error('Failed to save session to localStorage');
+        throw new Error('localStorage save failed');
+      }
+      
+      console.log('✅ Session created:', code, 'Key:', storageKey);
+      this.syncSession(code);
+      return sessionData;
+    } catch (error) {
+      console.error('❌ Error creating session:', error);
+      // Check if localStorage is available
+      if (typeof Storage === 'undefined') {
+        alert('localStorage를 사용할 수 없습니다. 브라우저 설정을 확인해주세요.');
+      } else {
+        alert('세션 저장에 실패했습니다. 브라우저 콘솔을 확인해주세요.');
+      }
+      throw error;
+    }
   },
 
   // Get session data
   getSession(accessCode) {
-    if (!accessCode) return null;
-    const code = accessCode.trim().toUpperCase();
-    try {
-      const data = localStorage.getItem(`${STORAGE_KEYS.TEACHER_DATA}_${code}`);
-      if (!data) return null;
-      return JSON.parse(data);
-    } catch (error) {
-      console.error('Error parsing session data:', error);
+    if (!accessCode) {
+      console.warn('getSession called with empty accessCode');
       return null;
     }
+    const code = accessCode.trim().toUpperCase();
+    const storageKey = `${STORAGE_KEYS.TEACHER_DATA}_${code}`;
+    
+    try {
+      const data = localStorage.getItem(storageKey);
+      if (!data) {
+        // Debug: List all session keys
+        console.warn('❌ Session not found for code:', code);
+        console.warn('   Looking for key:', storageKey);
+        this.debugListAllSessions();
+        return null;
+      }
+      const parsed = JSON.parse(data);
+      console.log('✅ Session found:', code);
+      return parsed;
+    } catch (error) {
+      console.error('❌ Error parsing session data:', error);
+      return null;
+    }
+  },
+  
+  // Debug: List all sessions in localStorage
+  debugListAllSessions() {
+    console.log('🔍 Debugging: Listing all localStorage keys...');
+    const allKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.includes(STORAGE_KEYS.TEACHER_DATA)) {
+        allKeys.push(key);
+        const value = localStorage.getItem(key);
+        try {
+          const parsed = JSON.parse(value);
+          console.log(`   Found session key: ${key}, code: ${parsed.code}`);
+        } catch (e) {
+          console.log(`   Found key (not JSON): ${key}`);
+        }
+      }
+    }
+    if (allKeys.length === 0) {
+      console.warn('   No session keys found in localStorage');
+    }
+    return allKeys;
+  },
+  
+  // Find session by code (case-insensitive search)
+  findSessionByCode(searchCode) {
+    if (!searchCode) return null;
+    const normalizedSearch = searchCode.trim().toUpperCase();
+    
+    // First try direct lookup
+    let session = this.getSession(normalizedSearch);
+    if (session) return session;
+    
+    // If not found, search all keys
+    console.log('🔍 Searching all sessions for code:', normalizedSearch);
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(STORAGE_KEYS.TEACHER_DATA + '_')) {
+        try {
+          const value = localStorage.getItem(key);
+          const parsed = JSON.parse(value);
+          if (parsed.code && parsed.code.toUpperCase() === normalizedSearch) {
+            console.log('✅ Found session by searching:', key);
+            return parsed;
+          }
+        } catch (e) {
+          // Skip invalid JSON
+        }
+      }
+    }
+    return null;
   },
 
   // Update session
