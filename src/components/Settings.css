@@ -1,0 +1,22 @@
+.settings-screen {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.settings-form {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.settings-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.settings-buttons button {
+  flex: 1;
+}
+

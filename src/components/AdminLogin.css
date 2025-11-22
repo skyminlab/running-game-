@@ -1,0 +1,49 @@
+.admin-login-screen {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-section {
+  margin: 30px 0;
+}
+
+.login-section h2 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.create-btn {
+  width: 100%;
+  padding: 20px;
+  font-size: 1.3em;
+}
+
+.divider {
+  text-align: center;
+  margin: 30px 0;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #666;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 2px;
+  background: #ddd;
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+

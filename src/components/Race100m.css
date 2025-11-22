@@ -1,0 +1,357 @@
+.race-100m-screen {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.countdown {
+  text-align: center;
+  font-size: 6em;
+  font-weight: bold;
+  color: #44a08d;
+  margin: 20px 0;
+  min-height: 120px;
+  animation: bounce 0.5s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.race-track {
+  position: relative;
+  background: linear-gradient(to bottom, 
+    #8B4513 0%, 
+    #8B4513 5%,
+    #D2691E 5%,
+    #D2691E 10%,
+    #8B4513 10%,
+    #8B4513 15%,
+    #D2691E 15%,
+    #D2691E 20%,
+    #8B4513 20%,
+    #8B4513 25%,
+    #D2691E 25%,
+    #D2691E 30%,
+    #8B4513 30%,
+    #8B4513 35%,
+    #D2691E 35%,
+    #D2691E 40%,
+    #8B4513 40%,
+    #8B4513 45%,
+    #D2691E 45%,
+    #D2691E 50%,
+    #8B4513 50%,
+    #8B4513 55%,
+    #D2691E 55%,
+    #D2691E 60%,
+    #8B4513 60%,
+    #8B4513 65%,
+    #D2691E 65%,
+    #D2691E 70%,
+    #8B4513 70%,
+    #8B4513 75%,
+    #D2691E 75%,
+    #D2691E 80%,
+    #8B4513 80%,
+    #8B4513 85%,
+    #D2691E 85%,
+    #D2691E 90%,
+    #8B4513 90%,
+    #8B4513 95%,
+    #D2691E 95%,
+    #D2691E 100%
+  );
+  border: 8px solid #654321;
+  border-radius: 0;
+  padding: 25px 20px;
+  margin: 20px 0;
+  min-height: 70vh;
+  max-height: 75vh;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.track-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    transparent 48%,
+    white 48%,
+    white 52%,
+    transparent 52%,
+    transparent 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.runners-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 15px 0;
+  max-height: calc(70vh - 100px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.runners-grid::-webkit-scrollbar {
+  width: 12px;
+}
+
+.runners-grid::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+}
+
+.runners-grid::-webkit-scrollbar-thumb {
+  background: #44a08d;
+  border-radius: 6px;
+}
+
+.runner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: left 0.1s ease-out;
+  position: relative;
+  padding: 12px 8px;
+  background: rgba(255, 255, 255, 1);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(255, 255, 255, 0.8);
+  border: 3px solid #fff;
+  min-width: 130px;
+  margin-bottom: 8px;
+  backdrop-filter: blur(5px);
+}
+
+.runner.player {
+  background: rgba(78, 205, 196, 0.95);
+  border: 3px solid #4ecdc4;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.6), 0 0 0 3px rgba(255, 255, 255, 0.9);
+}
+
+.runner .animal {
+  font-size: 2.5em;
+  margin-bottom: 8px;
+  transition: transform 0.2s;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+  background: rgba(255, 255, 255, 0.9);
+  padding: 5px;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.runner.running .animal {
+  animation: run 0.3s infinite;
+}
+
+@keyframes run {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(-5deg); }
+  75% { transform: translateY(-5px) rotate(5deg); }
+}
+
+.runner-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.runner-name {
+  font-weight: bold;
+  font-size: 0.95em;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #333;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+}
+
+.distance {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #44a08d;
+  margin: 4px 0;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.player-key {
+  font-size: 0.8em;
+  color: #333;
+  margin-top: 2px;
+  font-weight: bold;
+}
+
+.player-key kbd {
+  background: #333;
+  color: white;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.finish-line {
+  position: absolute;
+  right: 30px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #ff0000 0px,
+    #ff0000 25px,
+    #ffffff 25px,
+    #ffffff 50px
+  );
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #fff;
+  padding: 15px;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 1.2em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: -3px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.controls {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 20px 0;
+}
+
+.control-info {
+  text-align: center;
+}
+
+.control-info p {
+  margin: 12px 0;
+  font-size: 1.5em;
+}
+
+.time-display {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #44a08d;
+  margin-top: 15px;
+}
+
+kbd {
+  background: #333;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 1.2em;
+}
+
+/* Tablet Optimization */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .race-track {
+    min-height: 65vh;
+    max-height: 70vh;
+    padding: 20px 15px;
+  }
+
+  .runners-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    max-height: calc(65vh - 80px);
+  }
+
+  .runner {
+    min-width: 110px;
+    padding: 10px 6px;
+  }
+
+  .runner .animal {
+    font-size: 2em;
+  }
+
+  .runner-name {
+    font-size: 0.9em;
+  }
+
+  .distance {
+    font-size: 1.1em;
+  }
+
+  .countdown {
+    font-size: 5em;
+    min-height: 100px;
+  }
+
+  .control-info p {
+    font-size: 1.4em;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .race-track {
+    min-height: 60vh;
+    max-height: 65vh;
+    padding: 15px 10px;
+  }
+
+  .runners-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-height: calc(60vh - 60px);
+  }
+
+  .runner {
+    min-width: 100px;
+    padding: 8px 5px;
+  }
+
+  .countdown {
+    font-size: 4em;
+    min-height: 80px;
+  }
+
+  .runner .animal {
+    font-size: 1.8em;
+  }
+
+  .runner-name {
+    font-size: 0.85em;
+  }
+
+  .distance {
+    font-size: 1em;
+  }
+}
+

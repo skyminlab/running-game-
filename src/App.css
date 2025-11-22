@@ -1,0 +1,239 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', 'Malgun Gothic', '맑은 고딕', sans-serif;
+  background: linear-gradient(135deg, #a8e6cf 0%, #88d8a3 50%, #7dd3a0 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 3.5em;
+}
+
+.subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 1.8em;
+}
+
+/* Role Selection */
+.role-select-screen {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.role-buttons {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.role-btn {
+  padding: 40px 80px;
+  font-size: 2em;
+  font-weight: bold;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+  color: white;
+}
+
+.admin-btn {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+}
+
+.student-btn {
+  background: linear-gradient(135deg, #7dd3a0 0%, #6bc4a6 100%);
+}
+
+.role-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.role-btn:active {
+  transform: translateY(-2px);
+}
+
+/* Buttons */
+.btn-primary {
+  padding: 20px 40px;
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.6em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 10px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  padding: 18px 35px;
+  background: #6bc4a6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.4em;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  background: #5ab395;
+}
+
+.btn-back, .btn-logout {
+  margin-top: 20px;
+  padding: 18px 35px;
+  background: #6bc4a6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.4em;
+}
+
+.btn-back:hover, .btn-logout:hover {
+  background: #5ab395;
+}
+
+/* Input Groups */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  font-weight: bold;
+  color: #333;
+  font-size: 1.5em;
+}
+
+.input-group input {
+  padding: 20px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  font-size: 1.5em;
+  transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #4ecdc4;
+}
+
+.hint {
+  font-size: 1.2em;
+  color: #666;
+  font-style: italic;
+}
+
+/* Tablet Optimization (iPad) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .container {
+    padding: 25px;
+    max-width: 95%;
+  }
+
+  h1 {
+    font-size: 3em;
+  }
+
+  .subtitle {
+    font-size: 1.6em;
+  }
+
+  .role-btn {
+    padding: 35px 70px;
+    font-size: 1.8em;
+  }
+
+  .btn-primary {
+    padding: 18px 35px;
+    font-size: 1.5em;
+  }
+
+  .input-group input {
+    padding: 18px;
+    font-size: 1.4em;
+  }
+
+  .input-group label {
+    font-size: 1.4em;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .container {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 2.5em;
+  }
+
+  .subtitle {
+    font-size: 1.4em;
+  }
+
+  .role-buttons {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .role-btn {
+    width: 100%;
+    padding: 30px 50px;
+    font-size: 1.6em;
+  }
+
+  .btn-primary {
+    padding: 16px 30px;
+    font-size: 1.4em;
+  }
+}

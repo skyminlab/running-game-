@@ -1,0 +1,178 @@
+.game-selection-screen {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-info span {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #44a08d;
+}
+
+.btn-settings {
+  padding: 8px 15px;
+  background: #6bc4a6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.btn-settings:hover {
+  background: #5ab395;
+}
+
+.broadcast-message {
+  background: linear-gradient(135deg, #a8e6cf 0%, #88d8a3 100%);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1em;
+  animation: pulse 2s infinite;
+  color: #2d5a4a;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.waiting-message {
+  background: #f0f0f0;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.waiting-message .animal-icon {
+  font-size: 3em;
+  margin-bottom: 10px;
+}
+
+.game-info {
+  font-weight: bold;
+  color: #44a08d;
+  margin-top: 10px;
+}
+
+.game-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin: 25px 0;
+}
+
+.game-card {
+  background: linear-gradient(135deg, #7dd3a0 0%, #6bc4a6 100%);
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+  color: white;
+  position: relative;
+}
+
+.game-card:nth-child(2) {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+}
+
+.game-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.game-card.active {
+  border: 4px solid #a8e6cf;
+  animation: glow 2s infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(168, 230, 207, 0.5); }
+  50% { box-shadow: 0 0 30px rgba(168, 230, 207, 0.8); }
+}
+
+.animal-icon {
+  font-size: 4em;
+  margin-bottom: 15px;
+}
+
+.game-card h2 {
+  margin-bottom: 15px;
+  font-size: 2.5em;
+}
+
+.game-card p {
+  margin-bottom: 10px;
+  line-height: 1.6;
+  font-size: 1.3em;
+}
+
+.game-info {
+  font-weight: bold;
+  font-size: 1.5em;
+  margin-top: 15px;
+}
+
+.game-status {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.connected-students {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 10px;
+}
+
+.connected-students h3 {
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.8em;
+}
+
+.student-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.student-badge {
+  padding: 8px 15px;
+  background: #4ecdc4;
+  color: white;
+  border-radius: 20px;
+  font-size: 0.9em;
+}
+
+.empty {
+  color: #999;
+  font-style: italic;
+}
+
