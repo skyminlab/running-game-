@@ -17,8 +17,10 @@ function Race100m({ sessionCode, onComplete }) {
   const [countdown, setCountdown] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [playerPosition, setPlayerPosition] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const keyHandlerRef = useRef(null);
   const isRunningRef = useRef(false);
+  const timerIntervalRef = useRef(null);
   const user = getCurrentUser();
 
   // Load all students and set up player position
@@ -150,6 +152,15 @@ function Race100m({ sessionCode, onComplete }) {
           setIsRunning(true);
           currentStartTime = Date.now();
           setStartTime(currentStartTime);
+          setElapsedTime(0);
+          
+          // Update elapsed time every 100ms
+          timerIntervalRef.current = setInterval(() => {
+            if (isRunningRef.current && currentStartTime) {
+              setElapsedTime((Date.now() - currentStartTime) / 1000);
+            }
+          }, 100);
+          
           clearInterval(countdownInterval);
         }, 500);
       }
@@ -157,6 +168,9 @@ function Race100m({ sessionCode, onComplete }) {
 
     return () => {
       clearInterval(countdownInterval);
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
       handler.stop();
     };
   }, [playerPosition, sessionCode, user, onComplete]);
@@ -184,7 +198,7 @@ function Race100m({ sessionCode, onComplete }) {
           <div className="game-timer">
             <div className="timer-label">경과 시간</div>
             <div className="timer-value">
-              {((Date.now() - startTime) / 1000).toFixed(2)}초
+              {elapsedTime.toFixed(2)}초
             </div>
           </div>
         )}

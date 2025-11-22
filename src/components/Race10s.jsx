@@ -16,8 +16,10 @@ function Race10s({ sessionCode, onComplete }) {
   const [timeRemaining, setTimeRemaining] = useState(10);
   const [startTime, setStartTime] = useState(null);
   const [playerPosition, setPlayerPosition] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const keyHandlerRef = useRef(null);
   const timerRef = useRef(null);
+  const elapsedTimerRef = useRef(null);
   const isRunningRef = useRef(false);
   const user = getCurrentUser();
 
@@ -106,7 +108,15 @@ function Race10s({ sessionCode, onComplete }) {
           setIsRunning(true);
           currentStartTime = Date.now();
           setStartTime(currentStartTime);
+          setElapsedTime(0);
           const endTime = currentStartTime + 10000; // 10 seconds
+
+          // Update elapsed time
+          elapsedTimerRef.current = setInterval(() => {
+            if (isRunningRef.current && currentStartTime) {
+              setElapsedTime((Date.now() - currentStartTime) / 1000);
+            }
+          }, 100);
 
           timerRef.current = setInterval(() => {
             const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
@@ -114,6 +124,9 @@ function Race10s({ sessionCode, onComplete }) {
 
             if (remaining === 0) {
               clearInterval(timerRef.current);
+              if (elapsedTimerRef.current) {
+                clearInterval(elapsedTimerRef.current);
+              }
               isRunningRef.current = false;
               setIsRunning(false);
               
@@ -153,6 +166,9 @@ function Race10s({ sessionCode, onComplete }) {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
+      if (elapsedTimerRef.current) {
+        clearInterval(elapsedTimerRef.current);
+      }
       handler.stop();
     };
   }, [playerPosition, sessionCode, user, onComplete]);
@@ -177,7 +193,7 @@ function Race10s({ sessionCode, onComplete }) {
             <div className="timer-value">{timeRemaining}초</div>
             {startTime && (
               <div className="elapsed-time">
-                경과: {((Date.now() - startTime) / 1000).toFixed(2)}초
+                경과: {elapsedTime.toFixed(2)}초
               </div>
             )}
           </div>
