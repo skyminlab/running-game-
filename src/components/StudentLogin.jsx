@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SessionManager, generateStudentId, saveCurrentUser } from '../utils/sessionManager';
 import './StudentLogin.css';
 
@@ -6,31 +6,82 @@ function StudentLogin({ onLogin }) {
   const [accessCode, setAccessCode] = useState('');
   const [nickname, setNickname] = useState('');
   const [isConnecting, setIsConnecting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // 실시간으로 세션 생성 감지 (오류 메시지가 있을 때만)
+  useEffect(() => {
+    if (!accessCode || accessCode.length !== 6 || !errorMessage) return;
+
+    const checkSession = () => {
+      const code = accessCode.trim().toUpperCase();
+      const session = SessionManager.getSession(code);
+      if (session && !isConnecting) {
+        setErrorMessage('');
+        // 세션이 발견되면 자동으로 접속 시도
+        proceedWithLogin(code);
+      }
+    };
+
+    // 세션 감지를 위한 polling
+    const interval = setInterval(checkSession, 500);
+    
+    // storage 이벤트 리스너 (다른 탭에서 세션 생성 시)
+    const handleStorage = (e) => {
+      if (e.key && e.key.includes(accessCode.trim().toUpperCase())) {
+        checkSession();
+      }
+    };
+    
+    // 커스텀 이벤트 리스너 (같은 탭에서 세션 생성 시)
+    const handleSessionUpdate = (e) => {
+      if (e.detail && e.detail.accessCode === accessCode.trim().toUpperCase()) {
+        checkSession();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('sessionUpdate', handleSessionUpdate);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('sessionUpdate', handleSessionUpdate);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessCode, errorMessage]);
 
   const handleConnect = () => {
     const code = accessCode.trim().toUpperCase();
     if (!code || code.length !== 6) {
-      alert('올바른 6자리 접속 코드를 입력해주세요');
+      setErrorMessage('올바른 6자리 접속 코드를 입력해주세요');
       return;
     }
 
-    // Check if session exists, if not wait a bit and retry (for timing issues)
-    let session = SessionManager.getSession(code);
-    if (!session) {
-      // Wait a bit and retry once
-      setTimeout(() => {
-        session = SessionManager.getSession(code);
-        if (!session) {
-          alert('세션을 찾을 수 없습니다. 접속 코드를 확인해주세요. 교사가 세션을 생성했는지 확인해주세요.');
-          setIsConnecting(false);
-          return;
-        }
+    setIsConnecting(true);
+    setErrorMessage('');
+
+    // 여러 번 재시도하는 로직
+    let attempts = 0;
+    const maxAttempts = 10; // 5초 동안 시도 (500ms * 10)
+    
+    const tryConnect = () => {
+      const session = SessionManager.getSession(code);
+      
+      if (session) {
         proceedWithLogin(code);
-      }, 200);
-      return;
-    }
+      } else {
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(tryConnect, 500);
+        } else {
+          setIsConnecting(false);
+          setErrorMessage('세션을 찾을 수 없습니다. 접속 코드를 확인해주세요.\n교사가 세션을 생성했는지 확인해주세요.');
+        }
+      }
+    };
 
-    proceedWithLogin(code);
+    // 즉시 한 번 시도
+    tryConnect();
   };
 
   const proceedWithLogin = (code) => {
@@ -74,7 +125,10 @@ function StudentLogin({ onLogin }) {
               type="text"
               id="accessCode"
               value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+              onChange={(e) => {
+                setAccessCode(e.target.value.toUpperCase());
+                setErrorMessage(''); // 입력 시 오류 메시지 초기화
+              }}
               placeholder="6자리 코드 입력"
               maxLength={6}
               pattern="[A-Z0-9]+"
@@ -93,6 +147,19 @@ function StudentLogin({ onLogin }) {
             />
             <p className="hint">비워두면 기본 이름이 할당됩니다</p>
           </div>
+
+          {errorMessage && (
+            <div className="error-message">
+              <p>{errorMessage}</p>
+              <button 
+                className="btn-retry" 
+                onClick={handleConnect}
+                disabled={isConnecting}
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
 
           <button
             className="btn-primary"

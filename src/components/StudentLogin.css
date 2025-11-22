@@ -11,3 +11,42 @@
   gap: 20px;
 }
 
+.error-message {
+  background: rgba(255, 200, 200, 0.9);
+  border: 2px solid #ff6b6b;
+  border-radius: 12px;
+  padding: 15px 20px;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.error-message p {
+  color: #d63031;
+  font-size: 1.1em;
+  margin: 0 0 15px 0;
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+.btn-retry {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-retry:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.btn-retry:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+

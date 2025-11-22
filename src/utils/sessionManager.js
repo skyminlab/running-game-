@@ -38,8 +38,16 @@ export const SessionManager = {
 
   // Get session data
   getSession(accessCode) {
-    const data = localStorage.getItem(`${STORAGE_KEYS.TEACHER_DATA}_${accessCode}`);
-    return data ? JSON.parse(data) : null;
+    if (!accessCode) return null;
+    const code = accessCode.trim().toUpperCase();
+    try {
+      const data = localStorage.getItem(`${STORAGE_KEYS.TEACHER_DATA}_${code}`);
+      if (!data) return null;
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('Error parsing session data:', error);
+      return null;
+    }
   },
 
   // Update session
